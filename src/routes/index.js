@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt")
 
 const models = require("../models")
 const { validateEmail } = require("../utils")
+const Users = require("../models/Users")
 
 dotenv.config()
 
@@ -186,6 +187,54 @@ router.post(BASE_URL + "/users/register", async (req, res) => {
             response.message = "Email already taken"
         } else if (error.code === 99999) {
             response.message = "Email not valid"
+        }
+        response.error = error
+    }
+
+    res.send(response)
+})
+
+router.post(BASE_URL + "/users/login", async (req, res) => {
+    const response = {
+        body: null,
+        message: null,
+        error: null,
+    }
+
+    let { email, password } = req.body
+
+    try {
+        if (!validateEmail(email)) {
+            const e = new Error("Email not valid")
+            e.code = 99999
+            throw e
+        }
+
+        const user = await models.Users.findOne({ emailId: email })
+
+        if (user) {
+            if (await bcrypt.compare(password, user.password)) {
+                response.body = user
+            } else {
+                const e = new Error("Password not correct")
+                e.code = 99998
+                throw e
+            }
+        } else {
+            const e = new Error("User email not found")
+            e.code = 99990
+            throw e
+        }
+    } catch (error) {
+        console.log(error)
+        response.message = "Something went wrong"
+
+        if (error.code === 99990) {
+            response.message = "User email not found"
+        } else if (error.code === 99999) {
+            response.message = "Email not valid"
+        } else if (error.code === 99998) {
+            response.message = "Password not correct"
         }
         response.error = error
     }
