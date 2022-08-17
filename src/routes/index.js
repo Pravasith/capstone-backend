@@ -171,8 +171,8 @@ router.post(BASE_URL + "/users/register", async (req, res) => {
         password = await bcrypt.hash(password, 10)
 
         response.body = await models.Users.create({
-            firstName,
-            lastName,
+            firstName: firstName || "Anonymous",
+            lastName: lastName || "User",
             emailId: email,
             password,
             role: "user",
@@ -236,6 +236,113 @@ router.post(BASE_URL + "/users/login", async (req, res) => {
         } else if (error.code === 99998) {
             response.message = "Password not correct"
         }
+        response.error = error
+    }
+
+    res.send(response)
+})
+
+router.post(BASE_URL + "/posts", async (req, res) => {
+    const response = {
+        body: null,
+        message: null,
+        error: null,
+    }
+
+    let { imageUrl, description, email } = req.body
+
+    try {
+        if (!validateEmail(email)) {
+            const e = new Error("Email not valid")
+            e.code = 99999
+            throw e
+        }
+
+        const user = await models.Users.findOne({ emailId: email })
+
+        if (user) {
+            const newPost = {
+                imageUrl,
+                description,
+                userId: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profilePicture: user.profilePicture,
+                commentIds: [],
+            }
+
+            response.body = await models.Posts.create(newPost)
+
+            await models.Users.findOneAndUpdate(
+                { emailId: email },
+                { postIds: [...user.postIds, response.body._id] }
+            )
+        } else {
+            const e = new Error("User email not found")
+            e.code = 99990
+            throw e
+        }
+    } catch (error) {
+        console.log(error)
+        response.message = "Something went wrong"
+
+        if (error.code === 99990) {
+            response.message = "User email not found"
+        } else if (error.code === 99999) {
+            response.message = "Email not valid"
+        }
+        response.error = error
+    }
+
+    res.send(response)
+})
+
+router.get(BASE_URL + "/posts", async (req, res) => {
+    const response = {
+        body: null,
+        message: null,
+        error: null,
+    }
+
+    let { user_id } = req.query
+
+    try {
+        const user = await models.Users.findById(user_id)
+
+        if (!user) {
+            const e = new Error("User not found")
+            e.code = 99990
+            throw e
+        }
+
+        response.body = await models.Posts.find({ userId: user_id })
+    } catch (error) {
+        console.log(error)
+        response.message = "Something went wrong"
+
+        if (error.code === 99990) {
+            response.message = "User email not found"
+        }
+
+        response.error = error
+    }
+
+    res.send(response)
+})
+
+router.get(BASE_URL + "/posts/all", async (req, res) => {
+    const response = {
+        body: null,
+        message: null,
+        error: null,
+    }
+
+    try {
+        response.body = await models.Posts.find({})
+    } catch (error) {
+        console.log(error)
+        response.message = "Something went wrong"
+
         response.error = error
     }
 
