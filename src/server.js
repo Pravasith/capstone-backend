@@ -11,7 +11,7 @@ const routes = require("./routes")
 const mongooseService = require("./services/mongooseService")
 
 const app = express()
-const port = 8000 // default port to listen
+const port = process.env.PORT || 8000 // default port to listen
 
 const corsOptions = {
     origin: ["http://localhost:3000"],
