@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     profilePicture: {
         type: String,
         default:
-            "https://res.cloudinary.com/dyvki0hhn/image/upload/v1660778426/user_f4vklt.png",
+            "https://res.cloudinary.com/dyvki0hhn/image/upload/c_limit,h_50,w_50/v1660778426/user_f4vklt.png",
     },
     firstName: String,
     lastName: String,
