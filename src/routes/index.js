@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt")
 const models = require("../models")
 const { validateEmail } = require("../utils")
 const Users = require("../models/Users")
+const configs = require("../configs")
 
 dotenv.config()
 
@@ -230,6 +231,16 @@ router.put(BASE_URL + "/users", async (req, res) => {
             },
             { new: true }
         )
+
+        await models.Posts.updateMany(
+            { userId: user_id },
+            {
+                firstName: firstName || "Anonymous",
+                lastName: lastName || "User",
+                emailId: email,
+                profilePicture,
+            }
+        )
     } catch (error) {
         console.log(error)
         response.message = "Something went wrong"
@@ -322,6 +333,7 @@ router.post(BASE_URL + "/posts", async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 profilePicture: user.profilePicture,
+                dateTime: Date.now(),
                 commentIds: [],
             }
 
@@ -400,6 +412,42 @@ router.get(BASE_URL + "/posts/all", async (req, res) => {
     } catch (error) {
         console.log(error)
         response.message = "Something went wrong"
+
+        response.error = error
+    }
+
+    res.send(response)
+})
+
+router.delete(BASE_URL + "/posts", async (req, res) => {
+    const response = {
+        body: null,
+        message: null,
+        error: null,
+    }
+
+    let { post_id, user_id } = req.query
+
+    try {
+        const post = await models.Posts.findById(post_id)
+
+        if (
+            !post.userId.equals(user_id) &&
+            configs.adminConfig.userId !== user_id
+        ) {
+            const e = new Error("Unauthorized")
+            e.code = 99991
+            throw e
+        }
+
+        response.body = await models.Posts.findByIdAndDelete(post_id)
+    } catch (error) {
+        console.log(error)
+        response.message = "Something went wrong"
+
+        if (error.code === 99991) {
+            response.message = "Unauthorized"
+        }
 
         response.error = error
     }

@@ -23,7 +23,6 @@ const postSchema = new mongoose.Schema({
     commentIds: [mongoose.Schema.Types.ObjectId],
     dateTime: {
         type: Date,
-        default: Date.now(),
         auto: true,
     },
 })
