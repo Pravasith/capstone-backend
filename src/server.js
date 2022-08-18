@@ -1,5 +1,11 @@
 const cors = require("cors")
 const express = require("express")
+const path = require("path")
+
+process.env.NODE_ENV !== "production" &&
+    require("dotenv").config({
+        path: path.join(__dirname, "/envs/staging.env"),
+    })
 
 const routes = require("./routes")
 const mongooseService = require("./services/mongooseService")

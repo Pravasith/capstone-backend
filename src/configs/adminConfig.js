@@ -1,5 +1,5 @@
 const adminConfig = {
-    userId: "62fe66ed18550ccb0b4d6723",
+    userId: process.env.ADMIN_USER_ID,
 }
 
 module.exports = adminConfig
