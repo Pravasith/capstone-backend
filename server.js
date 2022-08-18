@@ -14,7 +14,10 @@ const app = express()
 const port = process.env.PORT || 8000 // default port to listen
 
 const corsOptions = {
-    origin: ["http://localhost:3000"],
+    origin:
+        process.env.NODE_ENV === "production"
+            ? ["https://capstone-animates.vercel.app"]
+            : ["http://localhost:3000"],
     credentials: true, // <-- REQUIRED backend setting
 }
 
@@ -29,5 +32,5 @@ app.use("/", routes)
 
 // start the Express server
 app.listen(process.env.PORT ?? port, () => {
-    console.log(`Server started @http://localhost:${port}`)
+    console.log(`Server started @${port}`)
 })
